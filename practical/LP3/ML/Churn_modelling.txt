@@ -1,0 +1,151 @@
+
+# ==============================================
+# PRACTICAL 3: BANK CUSTOMER CHURN PREDICTION
+# Using Artificial Neural Network (ANN)
+# ==============================================
+
+# STEP 1: Import required libraries
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+
+# STEP 2: Upload the dataset
+
+from google.colab import files
+uploaded = files.upload()
+
+
+# STEP 3: Read the dataset
+
+df = pd.read_csv('Churn_Modelling.csv')
+
+print("First five rows:")
+print(df.head())
+
+print("Dataset Shape:", df.shape)
+
+
+# STEP 4: Separate features and target
+
+# Remove unnecessary columns and target column
+X = df.drop(['RowNumber', 'CustomerId', 'Surname', 'Exited'], axis=1)
+
+# Exited is the target column
+y = df['Exited']
+
+
+# STEP 5: Convert categorical data into numerical data
+
+X = pd.get_dummies(X, columns=['Geography', 'Gender'],
+                   drop_first=True, dtype=int)
+
+
+# STEP 6: Split data into training and testing sets
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+
+# STEP 7: Normalize the data
+
+sc = StandardScaler()
+
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+
+# STEP 8: Build the ANN model
+
+model = Sequential()
+
+model.add(Dense(16, activation='relu',
+                input_dim=X_train.shape[1]))
+
+model.add(Dropout(0.2))
+
+model.add(Dense(8, activation='relu'))
+
+model.add(Dense(1, activation='sigmoid'))
+
+
+# STEP 9: Compile the model
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+
+# STEP 10: Train the model
+
+history = model.fit(
+    X_train, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2
+)
+
+
+# STEP 11: Predict the results
+
+y_pred = model.predict(X_test)
+
+# Convert probabilities into 0 or 1
+y_pred = (y_pred > 0.5).astype(int)
+
+
+# STEP 12: Calculate accuracy
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy * 100, "%")
+
+
+# STEP 13: Calculate confusion matrix
+
+cm = confusion_matrix(y_test, y_pred)
+
+print("Confusion Matrix:")
+print(cm)
+
+
+# STEP 14: Display confusion matrix visually
+
+plt.figure(figsize=(6, 4))
+
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+
+plt.xlabel('Predicted Values')
+plt.ylabel('Actual Values')
+plt.title('Confusion Matrix')
+
+plt.show()
+
+
+# STEP 15: Display training accuracy graph
+
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title('ANN Model Accuracy')
+plt.legend()
+plt.show()
+
+
+# STEP 16: Final result
+
+print("Bank Customer Churn Prediction Completed Successfully!")
